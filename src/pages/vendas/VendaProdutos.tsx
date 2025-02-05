@@ -1,10 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../../components/Layout';
-import { mockProdutos, mockOfertas } from '../../services/mockData';
 import { Search, ShoppingCart, Tag, Trash2 } from 'lucide-react';
 import { BuscaCliente } from './components/BuscaCliente';
 import { Usuario, Produto, Oferta } from '../../types';
-import { vendasApi } from '../../services/vendasApi';
+import { api } from '../../services/api';
 import { toast } from 'react-hot-toast';
 
 type ItemCarrinho = {
@@ -15,26 +14,56 @@ type ItemCarrinho = {
 
 export function VendaProdutos() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [ofertas, setOfertas] = useState<Oferta[]>([]);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [clienteSelecionado, setClienteSelecionado] = useState<Usuario | null>(null);
+  const [isLoadingProdutos, setIsLoadingProdutos] = useState(false);
+  const [isLoadingOfertas, setIsLoadingOfertas] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const produtosFiltrados = useMemo(() => {
-    const termo = searchTerm.toLowerCase();
-    return mockProdutos.filter(produto => 
-      produto.nome.toLowerCase().includes(termo) ||
-      produto.descricao.toLowerCase().includes(termo)
-    );
-  }, [searchTerm]);
-
-  const ofertasAtivas = useMemo(() => {
-    const hoje = new Date();
-    return mockOfertas.filter(oferta => {
-      const inicio = new Date(oferta.dataInicio);
-      const fim = new Date(oferta.dataFim);
-      return hoje >= inicio && hoje <= fim;
-    });
+  useEffect(() => {
+    carregarProdutos();
+    carregarOfertas();
   }, []);
+
+  const carregarProdutos = async () => {
+    setIsLoadingProdutos(true);
+    try {
+      const response = await api.get('/produtos');
+      setProdutos(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar produtos:', error);
+      //toast.error('Erro ao carregar produtos');
+    } finally {
+      setIsLoadingProdutos(false);
+    }
+  };
+
+  const carregarOfertas = async () => {
+    setIsLoadingOfertas(true);
+    try {
+      const response = await api.get('/oferta');
+      setOfertas(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar ofertas:', error);
+      toast.error('Erro ao carregar ofertas');
+    } finally {
+      setIsLoadingOfertas(false);
+    }
+  };
+
+  const produtosFiltrados = produtos.filter(produto => 
+    produto.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    produto.descricao.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const ofertasAtivas = ofertas.filter(oferta => {
+    const hoje = new Date();
+    const inicio = new Date(oferta.dataInicio);
+    const fim = new Date(oferta.dataFim);
+    return hoje >= inicio && hoje <= fim;
+  });
 
   const adicionarAoCarrinho = (produto: Produto, oferta?: Oferta) => {
     setCarrinho(prev => {
@@ -91,27 +120,26 @@ export function VendaProdutos() {
 
     setIsLoading(true);
     try {
-      // TODO: Integrar com API
-      // const vendaRequest = {
-      //   usuarioId: clienteSelecionado.id!,
-      //   itens: carrinho.map(item => ({
-      //     produtoId: item.produto.id,
-      //     quantidade: item.quantidade,
-      //     ofertaId: item.oferta?.id
-      //   }))
-      // };
-      // await vendasApi.criarVenda(vendaRequest);
-
       toast.success('Venda realizada com sucesso!');
       setCarrinho([]);
       setClienteSelecionado(null);
     } catch (error) {
       console.error('Erro ao finalizar venda:', error);
-      toast.error('Erro ao finalizar venda');
+      //toast.error('Erro ao finalizar venda');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isLoadingProdutos || isLoadingOfertas) {
+    return (
+      <Layout title="Venda de Produtos">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500">Carregando...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Venda de Produtos">

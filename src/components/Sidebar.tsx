@@ -47,7 +47,7 @@ export function Sidebar() {
       <div className="p-4">
         <div className="flex items-center gap-2 mb-8">
           <Film className="w-8 h-8 text-blue-600" />
-          <span className="text-xl font-bold text-gray-800">Cinema Admin</span>
+          <span className="text-xl font-bold text-gray-800">CineMaster</span>
         </div>
         <nav className="space-y-1">
           {menuItems.map((item) => {

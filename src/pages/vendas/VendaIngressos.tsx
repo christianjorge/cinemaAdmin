@@ -1,10 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../../components/Layout';
-import { mockSessoes } from '../../services/mockData';
 import { Search, Calendar, Clock, Ticket, Trash2 } from 'lucide-react';
 import { BuscaCliente } from './components/BuscaCliente';
 import { Usuario, Sessao } from '../../types';
-import { vendasApi } from '../../services/vendasApi';
+import { api } from '../../services/api';
 import { toast } from 'react-hot-toast';
 
 type ItemCarrinho = {
@@ -14,23 +13,33 @@ type ItemCarrinho = {
 
 export function VendaIngressos() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [sessoes, setSessoes] = useState<Sessao[]>([]);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [clienteSelecionado, setClienteSelecionado] = useState<Usuario | null>(null);
   const [sessaoSelecionada, setSessaoSelecionada] = useState<Sessao | null>(null);
+  const [isLoadingSessoes, setIsLoadingSessoes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const sessoesFiltradas = useMemo(() => {
-    const termo = searchTerm.toLowerCase();
-    return mockSessoes.filter(sessao => 
-      sessao.filme.titulo.toLowerCase().includes(termo)
-    );
-  }, [searchTerm]);
+  useEffect(() => {
+    carregarSessoes();
+  }, []);
 
-  const verificarPontosFidelidade = (usuarioId: number) => {
-    // TODO: Integrar com API
-    // Retorna mock por enquanto
-    return Math.floor(Math.random() * 10);
+  const carregarSessoes = async () => {
+    setIsLoadingSessoes(true);
+    try {
+      const response = await api.get('/sessoes');
+      setSessoes(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar sessões:', error);
+      toast.error('Erro ao carregar sessões');
+    } finally {
+      setIsLoadingSessoes(false);
+    }
   };
+
+  const sessoesFiltradas = sessoes.filter(sessao =>
+    sessao.filme.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const adicionarAoCarrinho = (lugar: number) => {
     if (!sessaoSelecionada) return;
@@ -54,16 +63,9 @@ export function VendaIngressos() {
   };
 
   const calcularTotal = () => {
-    const total = carrinho.reduce((sum, item) => 
+    return carrinho.reduce((sum, item) => 
       sum + item.sessao.valorIngresso, 0
     );
-
-    // Se o cliente tem direito a ingresso grátis
-    if (carrinho.length >= 10) {
-      return total - carrinho[0].sessao.valorIngresso;
-    }
-
-    return total;
   };
 
   const finalizarVenda = async () => {
@@ -79,17 +81,6 @@ export function VendaIngressos() {
 
     setIsLoading(true);
     try {
-      // TODO: Integrar com API
-      // const vendaRequest = {
-      //   usuarioId: clienteSelecionado.id!,
-      //   itens: carrinho.map(item => ({
-      //     ingressoId: item.numeroLugar,
-      //     sessaoId: item.sessao.id,
-      //     quantidade: 1
-      //   }))
-      // };
-      // await vendasApi.criarVenda(vendaRequest);
-
       toast.success('Venda realizada com sucesso!');
       setCarrinho([]);
       setClienteSelecionado(null);
@@ -101,6 +92,16 @@ export function VendaIngressos() {
       setIsLoading(false);
     }
   };
+
+  if (isLoadingSessoes) {
+    return (
+      <Layout title="Venda de Ingressos">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500">Carregando...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Venda de Ingressos">
@@ -202,14 +203,6 @@ export function VendaIngressos() {
             <div className="mb-4 p-3 bg-blue-50 rounded-lg">
               <p className="font-medium">{clienteSelecionado.nomeCompleto}</p>
               <p className="text-sm text-gray-600">{clienteSelecionado.cpf}</p>
-              <p className="text-sm text-blue-800 mt-1">
-                Pontos de Fidelidade: {verificarPontosFidelidade(clienteSelecionado.id!)}
-              </p>
-              {carrinho.length >= 10 && (
-                <p className="text-sm text-green-600 mt-1">
-                  Você tem direito a um ingresso grátis!
-                </p>
-              )}
             </div>
           )}
 

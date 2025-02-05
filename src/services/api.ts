@@ -27,7 +27,7 @@ api.interceptors.response.use(
     if (error.response?.status === 403) {
       toast.error('Acesso negado');
     } else if (error.response?.status === 404) {
-      toast.error('Recurso não encontrado');
+      //toast.error('Recurso não encontrado');
     } else if (error.response?.status === 500) {
       toast.error('Erro interno do servidor');
     } else if (!error.response) {

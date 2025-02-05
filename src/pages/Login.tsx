@@ -48,7 +48,7 @@ export function Login() {
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <Film className="w-12 h-12 text-blue-600 mb-2" />
-          <h1 className="text-2xl font-bold text-gray-900">Cinema Admin</h1>
+          <h1 className="text-2xl font-bold text-gray-900">CineMaster</h1>
           <p className="text-gray-600">Faça login para continuar</p>
         </div>
 
