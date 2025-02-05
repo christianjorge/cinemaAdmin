@@ -34,7 +34,7 @@ export function VendaProdutos() {
       setProdutos(response.data);
     } catch (error) {
       console.error('Erro ao carregar produtos:', error);
-      //toast.error('Erro ao carregar produtos');
+      toast.error('Erro ao carregar produtos');
     } finally {
       setIsLoadingProdutos(false);
     }
@@ -43,7 +43,7 @@ export function VendaProdutos() {
   const carregarOfertas = async () => {
     setIsLoadingOfertas(true);
     try {
-      const response = await api.get('/oferta');
+      const response = await api.get('/ofertas');
       setOfertas(response.data);
     } catch (error) {
       console.error('Erro ao carregar ofertas:', error);
@@ -125,7 +125,7 @@ export function VendaProdutos() {
       setClienteSelecionado(null);
     } catch (error) {
       console.error('Erro ao finalizar venda:', error);
-      //toast.error('Erro ao finalizar venda');
+      toast.error('Erro ao finalizar venda');
     } finally {
       setIsLoading(false);
     }
