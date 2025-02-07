@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 export const api = axios.create({
   ...API_CONFIG,
   // Adiciona retry
-  retry: 2, //Quantidade de vezes que o retry será executado
+  retry: 3, //Quantidade de vezes que o retry será executado
   retryDelay: (retryCount) => retryCount * 1000, // espera 1s, 2s, 3s
 });
 

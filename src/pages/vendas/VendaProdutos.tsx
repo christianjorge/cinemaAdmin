@@ -43,7 +43,7 @@ export function VendaProdutos() {
   const carregarOfertas = async () => {
     setIsLoadingOfertas(true);
     try {
-      const response = await api.get('/ofertas');
+      const response = await api.get('/oferta');
       setOfertas(response.data);
     } catch (error) {
       console.error('Erro ao carregar ofertas:', error);
